@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101e37">
+  <meta name="description" content="무료 개인용 식품법규 근거 검색·식약처 FAQ 서재·법령 열람·검토이력">
+  <title>Food Law AI | 식품법규 실무 데스크</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand"><div class="brand-mark">FL<span>·</span></div><div><strong>Food Law AI</strong><small>FOOD SAFETY DESK</small></div></div>
+    <div class="side-label">WORKSPACE</div>
+    <nav id="navigation" aria-label="주 메뉴">
+      <button class="nav-item active" data-page="search"><span class="nav-ico">⌕</span> 법규 질의 검색</button>
+      <button class="nav-item" data-page="faq"><span class="nav-ico">▤</span> 식약처 FAQ</button>
+      <button class="nav-item" data-page="library"><span class="nav-ico">▦</span> 법령 서재</button>
+      <button class="nav-item" data-page="history"><span class="nav-ico">◷</span> 검토 이력 · 보관함</button>
+    </nav>
+    <div class="side-bottom"><div class="dot-row"><span class="green-dot"></span> 무료 로컬 검색 모드</div><p>유료 API · 결제 · 로그인 없음<br>나의 메모는 이 기기에만 저장</p><a href="https://www.law.go.kr" target="_blank" rel="noopener noreferrer">국가법령정보센터 ↗</a></div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar"><button class="mobile-menu" id="mobileMenu" aria-label="메뉴 열기">☰</button><div class="breadcrumb">WORKSPACE <span>/</span> <strong id="breadcrumbTitle">법규 질의 검색</strong></div><div class="topbar-right"><span class="pill pill-outline">개인용 v0.2</span><span id="today"></span></div></header>
+
+    <section class="page active" id="page-search">
+      <div class="hero"><div class="hero-copy"><span class="overline">FOOD SAFETY INTELLIGENCE</span><h1>질문이 들어왔을 때,<br><em>답변과 근거를</em> 함께 보세요.</h1><p>검증된 실무사례는 답변과 근거를 함께 보여드립니다.<br>그 밖의 질문은 공식 FAQ 검색 결과를 제공합니다. 유료 AI는 사용하지 않습니다.</p></div><div class="hero-art" aria-hidden="true"><div class="book b1"></div><div class="book b2"></div><div class="book b3"></div><div class="hero-orbit">§</div></div></div>
+      <div class="search-panel card"><div class="search-label"><strong>실무 질문 검색</strong><span class="micro">문장 그대로 입력해도 됩니다</span></div><form id="searchForm" class="search-row"><label class="visually-hidden" for="mainQuery">질문 입력</label><input id="mainQuery" autocomplete="off" placeholder="예) 냉장원료를 잠깐 얼려서 슬라이스해도 되나요?" required><button class="btn btn-primary" type="submit">답변·근거 찾기 <span>↗</span></button></form><div class="examples"><span>예시 질문</span><button data-example="냉장육 슬라이스 위해 표면을 일시적으로 얼리는 공정">냉장육 절단</button><button data-example="원료육 냉동전환 신고">냉동전환 신고</button><button data-example="식품 알레르기 표시 의무">알레르기 표시</button><button data-example="HACCP 팀장 교육">HACCP 교육</button></div></div>
+      <div id="queryResult" class="result-wrap hidden" aria-live="polite"></div>
+      <div id="homeOverview"><div class="section-head"><div><span class="overline dark">REFERENCE CENTER</span><h2>바로 찾아보는 법규 자료</h2></div><span class="soft-note">2025 식약처 공식 질문집 기반</span></div><div class="stat-grid"><div class="stat-card"><div class="stat-icon">▤</div><b id="faqCount">-</b><span>검색 가능한 공식 FAQ</span></div><div class="stat-card"><div class="stat-icon">▦</div><b id="lawCount">-</b><span>연결된 법령·고시</span></div><div class="stat-card"><div class="stat-icon">◷</div><b id="caseCount">0</b><span>나의 검토 기록</span></div></div><div class="two-cols"><div class="card feature-card"><div class="feature-icon">▤</div><h3>식약처 FAQ 데이터</h3><p>2025년 공식 질문집을 질문번호와 인쇄 페이지 기준으로 찾아봅니다.</p><button class="text-link" data-goto="faq">FAQ 열기 <span>→</span></button></div><div class="card feature-card"><div class="feature-icon">▦</div><h3>법령 서재</h3><p>식품위생법, 축산물 위생관리법, 표시광고법 및 고시를 분류하여 읽습니다.</p><button class="text-link" data-goto="library">법령 서재 열기 <span>→</span></button></div></div></div>
+    </section>
+
+    <section class="page" id="page-faq"><div class="page-heading"><div><span class="overline dark">Q&A KNOWLEDGE BASE</span><h1>식약처 FAQ</h1><p>2025 자주하는 질문집 · 질문 <strong id="faqTotalHeader">-</strong>건을 주제별로 검색하세요.</p></div><span class="pill pill-muted">공식 민원인 안내서 · 법적 효력 없음</span></div><div class="card faq-controls"><div class="inline-search"><span>⌕</span><input id="faqQuery" placeholder="질문이나 답변 내용 검색 (예: 소비기한, 시설기준)"></div><select id="faqCategory" aria-label="FAQ 분야"><option value="">모든 분야</option></select></div><div class="list-summary"><span id="faqSearchCount"></span><span>제목 또는 답변 클릭 시 원문·근거 보기</span></div><div id="faqList" class="faq-list"></div><div class="pager"><button class="btn btn-secondary" id="faqMore">더 보기</button></div></section>
+
+    <section class="page" id="page-library"><div class="page-heading"><div><span class="overline dark">LEGAL LIBRARY</span><h1>법령 서재</h1><p>질문하지 않을 때도 법률·시행규칙·고시를 탐색하고, 필요한 조문을 저장하세요.</p></div></div><div class="library-hero card"><div><strong>📖 원문은 국가법령정보센터에서 확인하세요</strong><p>최신 시행법령·별표 확인을 위해 공식 사이트에 연결합니다. 본 앱은 원문을 자동으로 수집하거나 최신성을 보증하지 않습니다.</p></div><a class="btn btn-secondary" target="_blank" rel="noopener noreferrer" href="https://www.law.go.kr">법령정보센터 ↗</a></div><div class="library-controls"><div class="inline-search"><span>⌕</span><input id="lawQuery" placeholder="법령명이나 관련 분야 검색"></div><select id="lawCategory" aria-label="법령 유형"><option value="">전체 분류</option><option value="법률">법률</option><option value="시행령">시행령</option><option value="시행규칙">시행규칙</option><option value="고시">고시</option></select></div><div class="law-grid" id="lawList"></div><div class="card upload-card"><div><span class="overline dark">MY DOCUMENTS · LOCAL ONLY</span><h3>나만의 법령 자료 읽기</h3><p>법령 전문을 TXT 파일로 내려받아 가져오면, 이 브라우저에만 저장해 내부에서도 읽고 검색할 수 있어요. 원문 파일은 서버로 전송되지 않습니다.</p></div><label class="btn btn-secondary file-picker">TXT 자료 가져오기<input type="file" id="lawUpload" accept=".txt,.md,text/plain,text/markdown" hidden></label></div><div id="myLawList" class="my-law-list"></div></section>
+
+    <section class="page" id="page-history"><div class="page-heading"><div><span class="overline dark">MY RESEARCH</span><h1>검토 이력 · 보관함</h1><p>검색한 질문과 즐겨찾기, 보고 문안, 개인 메모를 내 브라우저에 저장합니다.</p></div><button class="btn btn-secondary" id="exportHistory">기록 백업(JSON) ↓</button></div><div class="tab-row"><button class="tab active" data-historytab="searches">최근 검색</button><button class="tab" data-historytab="bookmarks">FAQ 즐겨찾기</button><button class="tab" data-historytab="notes">내 메모</button></div><div id="historyContent" class="history-content"></div><div class="privacy-note">개인정보 및 사내 기밀은 기록하지 않는 것을 권장합니다. 브라우저의 사이트 데이터를 삭제하면 저장된 기록도 사라질 수 있어요.</div></section>
+  </main>
+</div>
+
+<div class="drawer-backdrop hidden" id="drawerBackdrop"></div><aside class="detail-drawer hidden" id="detailDrawer" aria-label="FAQ 상세" role="dialog" aria-modal="true"><div class="drawer-top"><div><span class="overline dark">OFFICIAL FAQ DETAIL</span><h2 id="detailTitle">질문 상세</h2></div><button class="icon-button" id="detailClose" aria-label="닫기">×</button></div><div class="drawer-scroll" id="detailBody"></div></aside>
+<div class="toast hidden" id="toast" role="status"></div>
+<script src="assets/faq_2025_data.js"></script>
+<script src="app.js" defer></script>
+</body></html>
