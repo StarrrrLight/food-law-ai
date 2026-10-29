@@ -50,7 +50,7 @@ if(/팀장/.test(q)&&/팀장/.test(f.title))sc+=42;
 if(/소비기한/.test(q)&&/소비기한/.test(f.title))sc+=65;
 if(/원산지/.test(q)&&/원산지/.test(f.title))sc+=55;
 return sc;}
-function runSearch(q,{restore=false}={}){q=q.trim();if(!q)return;lastQuery=q;const terms=extractTokens(q);let scored=faqData.map(f=>({...f,_score:scoreRecord(f,q,terms)})).filter(f=>f._score>=2.6).sort((a,b)=>b._score-a._score);lastResults=scored.slice(0,35);$('mainQuery').value=q;$('queryResult').classList.remove('hidden');$('homeOverview').classList.add('hidden');if(!restore){const old=searches().filter(s=>s.q!==q).slice(0,49);old.unshift({q,at:new Date().toISOString(),ids:lastResults.slice(0,5).map(x=>x.id)});setLS('searches',old);}renderResults();$('queryResult').scrollIntoView({behavior:'smooth',block:'start'});$('caseCount').textContent=searches().length;}
+function runSearch(q,{restore=false}={}){q=q.trim();if(!q)return;lastQuery=q;const terms=extractTokens(q);let scored=faqData.map(f=>({...f,_score:scoreRecord(f,q,terms)})).filter(f=>f._score>=2.6).sort((a,b)=>b._score-a._score);lastResults=(caseKind(q)==='direct_flame_label'?scored.filter(f=>/직화|불에 직접 가열|불로 직접/.test(f.title+' '+f.answer)):scored).slice(0,35);$('mainQuery').value=q;$('queryResult').classList.remove('hidden');$('homeOverview').classList.add('hidden');if(!restore){const old=searches().filter(s=>s.q!==q).slice(0,49);old.unshift({q,at:new Date().toISOString(),ids:lastResults.slice(0,5).map(x=>x.id)});setLS('searches',old);}renderResults();$('queryResult').scrollIntoView({behavior:'smooth',block:'start'});$('caseCount').textContent=searches().length;}
 function sampleText(s,n=290){return (s||'').replace(/\s+/g,' ').replace(//g,' ').slice(0,n)+(s&&s.length>n?'…':'')}
 const LAW_ANNEX12='https://www.law.go.kr/법령별표서식/(축산물 위생관리법 시행규칙,20260811,별표12)';
 const LAW_MEAT='https://www.law.go.kr/법령/축산물위생관리법';
@@ -58,6 +58,8 @@ const FOOD_CODE='https://www.law.go.kr/행정규칙/식품의기준및규격';
 // Zero-cost, curated decision cards: these are reviewed reference summaries, NOT unrestricted AI inference.
 function caseKind(q){
  const s=q.replace(/\s+/g,'').toLowerCase();
+ // Avoid a misleading name-label decision for unrelated cooking process questions.
+ if(/직화/.test(s)&&/제품명|상품명|품명|이름|명칭|표시|표기|라벨|문구|브랜드|표현|명명/.test(s))return 'direct_flame_label';
  const freeze=/얼리|얼려|얼렸|얼린|냉동|동결|얼음|얼렸다|표면경화/.test(s);
  const cold=/냉장|냉장원료|냉장육/.test(s);
  const cut=/슬라이스|절단|컷팅|커팅|썰기|자르|재단|분할|절편/.test(s);
@@ -72,6 +74,18 @@ function caseKind(q){
 }
 function makeReview(q){
  const kind=caseKind(q);
+ if(kind==='direct_flame_label')return {
+  kind,status:'사용에 주의 · 사실관계 확인',statusNote:'제품명 직화 표시 · 제조공정과 원재료 공정 확인 필요',
+  lead:'최종 제품 또는 원재료의 제조·가공과정 모두에 불로 직접 가열하는 공정이 없다면, 제품명에 ‘직화’를 사용하는 것은 제조방법을 오인시킬 우려가 있어 권장하기 어렵습니다. 다만 불꽃이 제품에 닿지 않았다는 설명만으로 결론을 확정할 수는 없으며 실제 가열방법과 원재료 가공과정을 함께 확인해야 합니다.',
+  sections:[
+   {title:'법적 의무 · 표시광고법 제8조제1항제4호·제5호',text:'거짓·과장된 표시 또는 광고 및 소비자를 기만하는 표시 또는 광고를 금지합니다. 실제 제조방법을 오인시키는 제품명 표현인지 검토해야 합니다.',url:'https://www.law.go.kr/LSW/lsLinkCommonInfo.do?chrClsCd=010202&lsJoLnkSeq=1030965253',label:'표시광고법 제8조 원문 확인'},
+   {title:'식약처 직접 관련 질의회신 (2025.11.30.)',text:'「제품명 일부로 직화 표시」: 최종 제품 또는 원재료 제조·가공과정에 불로 직접 가열하는 공정이 포함되는 등 표시가 소비자 기대에 부합하면 영업자 책임하에 표시할 수 있다는 취지의 회신입니다.',url:'https://www.law.go.kr/LSW/cgmExpcInfoP.do?cgmExpcDatSeq=2283911&mode=2&ofiClsCd=350123',label:'식약처 직화 질의회신 원문 확인'}
+  ],
+  checks:['최종 제품의 실제 가열방법과 공정도를 확인','원재료 제조·가공과정에 직접 불로 가열한 과정이 있는지 공급업체 자료로 확인','제품명·조리사진·광고가 소비자에게 실제 제조방법을 오인시키지 않는지 확인','직화공정이 없다면 입증 가능한 제조방법 또는 풍미 표현으로 변경 검토','판단이 어려운 경우 관할기관에 표시 문안을 첨부해 질의'],
+  note:'국가법령정보센터에 수록된 식약처 2025.11.30. 국민신문고 해석을 바탕으로 한 사전 정리 사례입니다. 이 앱은 실시간 AI 판단기가 아닙니다. 법령 개정·개별 공정 조건에 따라 결론이 달라질 수 있습니다.',
+  report:'제품 및 원재료 제조단계 모두에 실제 직화(불로 직접 가열) 공정이 없다면 제품명에 직화를 사용하는 것은 제조방법에 대한 소비자 오인 우려가 있어 사용을 권장하기 어렵습니다. 「식품 등의 표시·광고에 관한 법률」 제8조제1항제4호·제5호와 식약처 2025.11.30. 질의회신(제품명 일부로 직화 표시)을 근거로 실제 제조공정 및 표시문안을 검토한 뒤 결정하는 것이 필요합니다.',
+  sources:[]
+ };
  if(kind==='surface_chill')return {
   kind, status:'조건부 가능',statusNote:'냉장 식육인 경우에 한함',
   lead:'절단 또는 슬라이스 편의를 위해 냉장 식육의 심부는 동결하지 않고 표면만 단단해질 정도로 냉동시설에 일시 보관하는 것은 관련 기준에서 허용하고 있습니다. 다만 이것은 냉장원료를 냉동원료로 전환해 저장하는 것과 다릅니다.',
@@ -115,13 +129,15 @@ function makeReview(q){
 }
 function renderSourcePair(e){const f=faqData.find(x=>x.id===e.id);if(!f)return'';return `<div class="source-pair"><div><b>식약처 Q${e.id} · p.${f.page}</b><p>${safe(e.desc)}</p></div><button class="btn btn-secondary" data-open-faq="${e.id}">원문 읽기 ↗</button></div>`}
 function renderReviewCard(review){
- if(!review){const f=lastResults[0]; if(!f)return `<section class="answer-card"><span class="answer-label">근거 검토</span><h3>현재 자료에서 직접 연결되는 근거를 찾지 못했습니다</h3><p>다른 표현으로 질문하거나 법령 서재에서 검색해 주세요. 근거가 없는 법적 결론은 생성하지 않습니다.</p></section>`;
+ if(!review){const f=lastResults[0]; if(!f||f._score<18)return `<section class="answer-card"><span class="answer-label">근거 검토</span><h3>질문과 직접 일치하는 법적 근거를 확인하지 못했습니다</h3><p>아래의 유사 단어 검색결과가 실제 질문과 다른 사례일 수 있습니다. 근거가 없는 법적 결론은 생성하지 않습니다. 제품 유형·공정과 표시방법을 확인하고 공식 법령을 검토해 주세요.</p></section>`;
   return `<section class="answer-card answer-pending"><div class="answer-head"><span class="answer-label">FAQ 근거 요약 · 법적 결론 미확정</span><span class="answer-chip neutral">원문 확인 필요</span></div><h3>가장 유사한 공식 질의회신을 찾았습니다</h3><p>현재 무료 버전에는 이 질문에 대한 검증된 판단 카드가 없습니다. 아래는 식약처 질문집의 <b>기존 답변 일부</b>이며, 입력한 질문에 대한 독립적인 AI 판단이 아닙니다.</p><div class="faq-preview"><strong>Q${f.id}. ${safe(f.title)}</strong><p>${safe(sampleText(f.answer,620))}</p></div><button class="btn btn-secondary" data-open-faq="${f.id}">전체 답변·근거 확인 ↗</button></section>`;
  }
  const sections=review.sections.map(x=>`<div class="answer-section"><strong>${safe(x.title)}</strong><p>${safe(x.text)}</p>${x.url?`<a class="answer-link" href="${safe(x.url)}" target="_blank" rel="noopener noreferrer">${safe(x.label||'공식 법령 원문 보기')} ↗</a>`:`<button class="answer-link" data-open-faq="${x.faqId}">${safe(x.label||'FAQ 원문 확인')}</button>`}</div>`).join('');
  const checks=review.checks.map(x=>`<li>${safe(x)}</li>`).join('');
  const mainSource=review.sources.map(renderSourcePair).join('');
- return `<section class="answer-card"><div class="answer-head"><div><span class="answer-label">검증된 실무사례 기반 참고 검토</span><h3>핵심 답변</h3></div><span class="answer-chip">${safe(review.status)}</span></div><p class="answer-scope">${safe(review.statusNote)}</p><p class="answer-lead">${safe(review.lead)}</p><div class="answer-sections">${sections}</div><h4>적용 전 확인사항</h4><ul class="answer-checks">${checks}</ul><div class="answer-report"><div class="report-head"><strong>대표님 보고용 문구</strong><button class="btn btn-secondary" data-copy-verdict>이 문구 복사</button></div><p>${safe(review.report)}</p></div><div class="answer-sources"><b>관련 공식 사례</b>${mainSource}</div><div class="answer-disclaimer">${safe(review.note)}<br>출처: 식약처 2025년 질문집. 관련 별표는 2026.08.11 시행판을 2026.10.27에 조회했으나, 정기적으로 자동 갱신되지 않습니다. 실제 보고 전에 원문·시행일·개정 여부를 확인하세요.</div></section>`;
+ const sourcesView=mainSource?`<div class="answer-sources"><b>관련 공식 질문집 사례</b>${mainSource}</div>`:'';
+ const origin=review.kind==='direct_flame_label'?'출처: 식약처 2025.11.30. 국민신문고 공개 법령해석 및 표시광고법 제8조.':'출처: 식약처 2025년 질문집. 관련 별표는 2026.08.11 시행판을 2026.10.27에 조회했으나 자동 갱신되지 않습니다.';
+ return `<section class="answer-card"><div class="answer-head"><div><span class="answer-label">검증된 실무사례 기반 참고 검토</span><h3>핵심 답변</h3></div><span class="answer-chip">${safe(review.status)}</span></div><p class="answer-scope">${safe(review.statusNote)}</p><p class="answer-lead">${safe(review.lead)}</p><div class="answer-sections">${sections}</div><h4>적용 전 확인사항</h4><ul class="answer-checks">${checks}</ul><div class="answer-report"><div class="report-head"><strong>대표님 보고용 문구</strong><button class="btn btn-secondary" data-copy-verdict>이 문구 복사</button></div><p>${safe(review.report)}</p></div>${sourcesView}<div class="answer-disclaimer">${safe(review.note)}<br>${safe(origin)} 실제 보고 전에 원문·시행일·개정 여부를 확인하세요.</div></section>`;
 }
 function renderResults(){
  const box=$('queryResult');const review=makeReview(lastQuery);const kind=review?.kind||'';
